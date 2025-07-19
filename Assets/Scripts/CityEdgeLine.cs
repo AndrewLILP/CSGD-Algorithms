@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using TMPro;
 [RequireComponent(typeof(LineRenderer))]
 
 public class CityEdgeLine : MonoBehaviour
@@ -9,6 +9,9 @@ public class CityEdgeLine : MonoBehaviour
 
     public Color lineColor = Color.red; // Color of the line
     public float lineWidth = 0.1f; // Width of the line
+
+    public float weight; // Weight of the edge, can be used for pathfinding or other purposes
+    [SerializeField] private TMP_Text weightTxt; // Text component to display the weight of the edge
 
     private LineRenderer lineRenderer;
 
@@ -24,15 +27,25 @@ public class CityEdgeLine : MonoBehaviour
         lineRenderer.endColor = lineColor; // Set the end color of the line
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public Transform GetNeighbor(Transform current)
+    {
+        if (current == headNode) return tailNode;
+        if (current == tailNode) return headNode;
+        return null; // If the current node is neither head nor tail, return null
+    }
+
+    private void FixedUpdate() // looks every 4th frame - should be if moved, then update weight
     {
         if (headNode != null && tailNode != null)
         {
             lineRenderer.SetPosition(0, headNode.position); // Set the start position of the line
             lineRenderer.SetPosition(1, tailNode.position); // Set the end position of the line
+        
+            weight = Mathf.Round(Vector3.Distance(headNode.position, tailNode.position) * 100f) / 100f;
+            weightTxt.text = weight.ToString(); // Update the weight text with the distance between the nodes
+            weightTxt.gameObject.transform.position = (headNode.position + tailNode.position) / 2; // Position the weight text in the middle of the line
+            weightTxt.transform.rotation = Camera.main.transform.rotation; // Rotate the text to face the camera
         }
-
     }
 
     private void OnDrawGizmos()
